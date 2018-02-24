@@ -9,6 +9,7 @@ Currently supported identifies include:
  * DOI
  * ISBN
  * arXiv
+ * ISSN
 
 Outputs a TSV file with the following fields:
 
@@ -41,9 +42,9 @@ import mwxml
 
 import mysqltsv
 
-from ..extractors import arxiv, doi, isbn, pubmed
+from ..extractors import arxiv, doi, isbn, issn, pubmed
 
-ALL_EXTRACTORS = [doi, pubmed, isbn, arxiv]
+ALL_EXTRACTORS = [doi, pubmed, isbn, arxiv, issn]
 
 HEADERS = ("page_id", "page_title", "rev_id", "timestamp", "type", "id")
 
@@ -114,7 +115,7 @@ def extract_cite_history(page, extractors):
         # For each ID, check to see if we have seen it before
         for id in ids:
             if id not in appearances:
-               appearances[id] = (revision.id, revision.timestamp)
+                appearances[id] = (revision.id, revision.timestamp)
 
     for id in ids: #For the ids in the last version of the page
         rev_id, timestamp = appearances[id]

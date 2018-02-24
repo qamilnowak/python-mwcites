@@ -3,3 +3,4 @@ more-itertools
 mwparserfromhell
 mwxml
 mysqltsv
+nose # for tests
