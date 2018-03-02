@@ -38,11 +38,9 @@ import sys
 from itertools import chain
 
 import docopt
-import mwxml
+from mw import xml_dump
 
-import mysqltsv
-
-from ..extractors import arxiv, doi, isbn, issn, pubmed
+from ..extractors import arxiv, doi, isbn, pubmed, issn
 
 ALL_EXTRACTORS = [doi, pubmed, isbn, arxiv, issn]
 
@@ -61,11 +59,18 @@ def main(argv=None):
     run(dump_files, extractors)
 
 def run(dump_files, extractors):
-    writer = mysqltsv.Writer(sys.stdout, headers=HEADERS)
+
+    print("\t".join(HEADERS))
 
     cites = extract(dump_files, extractors=extractors)
     for page_id, title, rev_id, timestamp, type, id in cites:
-        writer.write([page_id, title, rev_id, timestamp.long_format(), type, id])
+
+        print("\t".join(tsv_encode(v) for v in (page_id,
+                                                title,
+                                                rev_id,
+                                                timestamp.long_format(),
+                                                type,
+                                                id)))
 
 def extract(dump_files, extractors=ALL_EXTRACTORS):
     """
@@ -91,14 +96,14 @@ def extract(dump_files, extractors=ALL_EXTRACTORS):
                     yield cite
 
     # Map call
-    return mwxml.map(process_dump, dump_files)
+    return xml_dump.map(dump_files, process_dump)
 
 def extract_cite_history(page, extractors):
     """
-    Extracts cites from the history of a `page` (`mwxml.Page`).
+    Extracts cites from the history of a `page` (`mw.xml_dump.Page`).
 
     :Parameters:
-        page : `iterable`(`mwxml.Revision`)
+        page : `iterable`(`mw.xml_dump.Revision`)
             The page to extract cites from
         extractors : `list`(`extractor`)
             A list of extractors to apply to the text
@@ -115,7 +120,7 @@ def extract_cite_history(page, extractors):
         # For each ID, check to see if we have seen it before
         for id in ids:
             if id not in appearances:
-                appearances[id] = (revision.id, revision.timestamp)
+               appearances[id] = (revision.id, revision.timestamp)
 
     for id in ids: #For the ids in the last version of the page
         rev_id, timestamp = appearances[id]
@@ -159,3 +164,26 @@ def import_from_path(path):
     attribute = getattr(module, attribute_name)
 
     return attribute
+
+
+def tsv_encode(val, none_string="NULL"):
+    """
+    Encodes a value for inclusion in a TSV.  Basically, it converts the value
+    to a string and escapes TABs and linebreaks.
+
+    :Parameters:
+        val : `mixed`
+            The value to encode
+        none_string : str
+            The string to use when `None` is encountered
+
+    :Returns:
+        str -- a string representing the encoded value
+    """
+    if val == "None":
+        return null_string
+    else:
+        if isinstance(val, bytes):
+            val = str(val, 'utf-8')
+
+        return str(val).replace("\t", "\\t").replace("\n", "\\n")
