@@ -2,9 +2,6 @@ Extract academic citations from Wikipedia
 =========================================
 This project contains a utility for extracting academic citation identifiers.
 
-**NOTE:** As one of its dependencies (`Mediawiki-Utilities <https://github.com/halfak/Mediawiki-Utilities>`_) requires
-Python 3 so does mwcites.
-
 ``pip install git+https://github.com/qamilnowak/python-mwcites``
 
 Usage
